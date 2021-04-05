@@ -1,11 +1,7 @@
+
+# require '../lib/locker'
+
 class App
 
-  def initialize
-
-  end
-
-  def run
-
-  end
-
 end
+
