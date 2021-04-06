@@ -68,29 +68,46 @@ RSpec.describe App do
 
   describe 'Login to locker' do
   
-    # it 'should read the name of a locker' do
+    it 'should read the name of a saved locker' do
+      app = App.new
+      expect(app.get_locker_name).to eq "Chris"
+    end
   
-    # end
+    it 'should compare user input with password and return true' do
+      app = App.new
+      user_input = 'Password'
+      expect(app.verify_pword(user_input)).to be true
+    end
   
-    # it 'should match password with saved hash' do
+    it 'should throw user an error if password is incorrect' do
+      app = App.new
+      user_input = 'Something wrong'
+      expect{app.verify_pword(user_input)}.to raise_error(WrongPassword)
+    end
   
-    # end
-  
-    # it 'should throw user an error if password is incorrect' do
-  
-    # end
-  
-    # it 'should read contents of secure locker and see categories and entries' do
-  
-    # end
+    it 'should read data from secure locker' do
+      app = App.new
+      data = {
+        "passwords" => [
+          {'name' => 'google', 'username' => "chris@gmail.com", 'password' => 'password'},
+          {'name' => 'apple', 'username' => "chris@me.com", 'password' => 'password'}
+          ],
+        "servers" => [],
+        "notes" => []
+      }
+      expect(app.get_locker_data).to eq data
+    end
   
   end
   
   describe 'Add, edit, delete password entries' do
   
-    # it 'should read all the saved entry names' do
-  
-    # end
+    it 'should read all the saved entry names and output string' do
+      app = App.new
+      data_array = ['google', 'apple']
+      expect(app.get_password_names).to eq data_array
+
+    end
   
     # it 'should add entry to password category' do
   
