@@ -1,3 +1,5 @@
+require 'openssl'
+require 'json'
 
 class Locker
 
@@ -23,5 +25,14 @@ class Locker
       'data' => @data
     }
   end
+
+  def create_file()
+    File.open('data/temp_json','w+') do |f|
+      f.write(@locker.to_json)
+    end
+  end
   
 end
+
+lock = Locker.new('Chris', 'Password')
+lock.create_file

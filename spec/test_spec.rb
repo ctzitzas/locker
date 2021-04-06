@@ -40,9 +40,6 @@ RSpec.describe Locker do
       expect(new_locker.create_locker).to eq user_locker
     end
 
-    # it 'should save data and be unreadable' do
-    # end
-
   end
 end
 
