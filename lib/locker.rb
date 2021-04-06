@@ -10,17 +10,17 @@ class Locker
   
   def create_data
     {
-      :passwords => [],
-      :servers => [],
-      :notes => []
+      'passwords' => [],
+      'servers' => [],
+      'notes' => []
     }
   end
 
   def create_locker
     { 
-      :name => @name,
-      :password => @password,
-      :data => @data
+      'name' => @name,
+      'password' => @password,
+      'data' => @data
     }
   end
   

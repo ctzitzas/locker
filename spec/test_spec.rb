@@ -1,5 +1,6 @@
 require_relative '../lib/app'
 require_relative '../lib/locker'
+require_relative '../lib/errors'
 
 ARGV.clear
 
@@ -7,21 +8,21 @@ RSpec.describe Locker do
   describe 'Create a locker' do
 
       empty_data = {
-      :passwords => [],
-      :servers => [],
-      :notes => []
+      'passwords' => [],
+      'servers' => [],
+      'notes' => []
       }
 
       empty_locker = {
-      :name => 'empty',
-      :password => 'empty',
-      :data => empty_data
+      'name' => 'empty',
+      'password' => 'empty',
+      'data' => empty_data
       }
 
       user_locker = {
-        :name => 'User',
-        :password => 'Password',
-        :data => empty_data
+        'name' => 'User',
+        'password' => 'Password',
+        'data' => empty_data
       }
 
     it 'should create an empty data block for locker' do
@@ -38,26 +39,35 @@ RSpec.describe Locker do
       new_locker = Locker.new('User', 'Password')
       expect(new_locker.create_locker).to eq user_locker
     end
+
+    # it 'should save data and be unreadable' do
+    # end
+
   end
 end
 
-# RSpec.describe App do
-#   describe 'Password Testing' do
-#     it 'should return false if password is weak' do
-      
-#     end
+RSpec.describe App do
+  describe 'Password Testing' do
+    it 'should raise an error if password is short' do
+      app = App.new
+      expect{app.test_password('weak')}.to raise_error(ShortPassword)
+    end
 
-#     it 'should return true if password is strong' do
-      
-#     end
+    it 'should return true if password is strong' do
+      app = App.new
+      expect(app.test_password('GreatPassword1!')).to be true
+    end
 
-#     it 'should return error if password is weak' do
-#     end
+    it 'should raise an error if password is weak' do
+      app = App.new
+      expect{app.test_password('weak1234')}.to raise_error(WeakPassword)
+    end
 
-#     it 'should return the password if password is strong' do
-      
-#     end
-#   end
+    it 'should a save the password as a hash and be unreadable' do
+      app = App.new
+      expect(app.hash_password('password')).not_to eql 'password'
+    end
+  end
 
   describe 'Login to locker' do
   
@@ -113,7 +123,7 @@ end
   
     # end
   
-    # it 'should save password in encrypted format' do
+    # it 'should save password as a hash and be unreadable do
   
     # end
   
