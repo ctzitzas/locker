@@ -1,7 +1,8 @@
 
-# require '../lib/locker'
+require_relative '../lib/locker'
 require_relative 'errors'
 require 'bcrypt'
+require 'json'
 
 class App
 
@@ -13,7 +14,7 @@ class App
       :digits => ('0'..'9').to_a,
       :symbols => ['!', '@', '#', '$', '%', '^', '&', '=', ':', '?', '.', '/', '|', '~', '>', '*', '(', ')', '<']
     }
-
+    open_locker()
   end
 
   def test_password(password)
@@ -37,13 +38,34 @@ class App
         raise WeakPassword
       end
     end
-
+    
     return true
-
   end
 
   def hash_password(password)
     BCrypt::Password.create(password)
   end
 
+  def open_locker
+    locker = File.read('data/temp_json')
+    @locker = JSON.parse(locker)
+  end
+
+  def get_locker_name
+    @locker['name']
+  end
+
+  def verify_pword(user_input)
+    raise WrongPassword if @locker['password'] != user_input
+    @locker['password'] == user_input
+  end
+
+  def get_locker_data
+    @locker['data']
+  end
+
+  def get_password_names
+    @locker['data']['passwords'].map {|password| password['name']}
+  end
 end
+
