@@ -5,11 +5,12 @@ require 'base64'
 
 class Session
 
-  def initialize(name, plain_password, data = nil)
+  def initialize(name, plain_password, data)
     @name = name
     @password = plain_password
     @salt = 'thissalt'
-    data == nil ? @data = set_up() : @data = decrypt_it(data)
+    # data == nil ? @data = set_up() : @data = JSON.parse(decrypt_it(data))
+    @data = data
   end
 
   def set_up
@@ -51,6 +52,14 @@ class Session
     decryptor.pkcs5_keyivgen @password, @salt
     plain = decryptor.update data
     plain << decryptor.final
+  end
+
+  def list_entries(category)
+    @data[category].map {|hash| hash['name']}
+  end
+
+  def get_entry(category, index)
+    @data[category][index].map {|k,v| v}
   end
 
 end
