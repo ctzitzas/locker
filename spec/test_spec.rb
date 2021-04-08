@@ -291,7 +291,81 @@ RSpec.describe App do
 end
 
 RSpec.describe Session do
-  
+  describe 'Get entry lists' do
+    before(:each) do
+      @test_data = {
+        'passwords' => [
+          {
+          'name' => 'gmail',
+          'user' => 'chris@gmail.com',
+          'pword' => 'temporary'
+        },
+          { 
+          'name' => 'apple',
+          'user' => 'chris@me.com',
+          'pword' => 'temporary'
+          },
+          {
+          'name' => 'github',
+          'user' => 'chris@me.com',
+          'pword' => 'temporary'
+          }
+        ],
+        'servers' => [
+          {
+          'name' => 'local',
+          'user' => 'admin',
+          'pword' => 'temporary',
+          'IP_address' => '192.168.1.12',
+          'ports' => [
+            '21 - open',
+            '45 - open',
+            '65 - open'
+            ],
+          'notes' => 'This server is currently down'
+          },
+          {
+          'name' => 'work',
+          'user' => 'admin',
+          'pword' => 'temporary',
+          'IP_address' => '192.168.1.12',
+          'ports' => [
+            '21 - open',
+            '45 - open',
+            '65 - open'
+            ],
+          'notes' => 'This server is currently good'
+          }
+        ],
+        'notes' => [
+          {
+            'name' => 'list of secret recipes',
+            'note' => 'Not much here at the moment'
+          },
+          {
+            'name' => 'secret phone numbers',
+            'note' => 'phone numbers for famous people'
+          }
+        ]
+      }
+      @session = Session.new('temp', 'temporary', @test_data)
     end
+
+    it 'should return the names of all entries within passwords category' do
+      expect(@session.list_entries('passwords')).to eq ['gmail', 'apple', 'github'] 
+    end
+
+    it 'should return all information in a password entry within an array' do
+      expect(@session.get_entry('passwords', 0)).to eq ['gmail', 'chris@gmail.com', 'temporary']
+    end
+
+    it 'should return all information in a server entry within an array' do
+      expect(@session.get_entry('servers', 0)).to eq ['local', 'admin', 'temporary', '192.168.1.12', ['21 - open', '45 - open', '65 - open'], 'This server is currently down']
+    end
+
+    it 'should return all information in a note entry within an array' do
+      expect(@session.get_entry('notes', 0)).to eq ['list of secret recipes', 'Not much here at the moment']
+    end
+  end
 end
 
