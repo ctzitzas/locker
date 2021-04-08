@@ -11,15 +11,33 @@ class Locker
     @data[category].map { |hash| hash['name']}
   end
 
-  def add_password
-
+  def add_password(name, username, password)
+    @data['passwords'] << {
+      'name' => name,
+      'user' => username,
+      'pword' => password
+    }
+    @data
   end
 
-  def add_server
-
+  def add_server(name, user, pword, ip_address, ports = nil, notes = nil)
+    @data['servers'] << {
+      'name' => name,
+      'user' => user,
+      'pword' => pword,
+      'ip_address' => ip_address,
+      'ports' => ports,
+      'notes' => notes
+    }
+    @data
   end
 
-  def add_notes
+  def add_note(name, note)
+    @data['notes'] << {
+      'name' => name,
+      'note' => note
+    }
+    @data
 
   end
 
