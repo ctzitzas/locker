@@ -16,7 +16,6 @@ class App < Session
     }
 
     @session = nil
-    # open_locker()
   end
 
   def test_password(password)
@@ -25,7 +24,6 @@ class App < Session
     high_case = 0
     digits = 0
     symbols = 0
-
     char_arr = password.split('')
     char_arr.each do |char| 
       low_case += 1 if @pword_chars[:lowcase].include?(char) 
@@ -44,6 +42,21 @@ class App < Session
     return true
   end
 
+  def generate_password
+    password_letter_categories = [:lowcase, :highcase]
+    begin
+    password =[]
+      1.times { password << @pword_chars[:digits].sample }
+      1.times { password << @pword_chars[:symbols].sample }
+      6.times { password << @pword_chars[password_letter_categories.sample].sample }
+      password = password.shuffle.join
+      raise if test_password(password) == false
+    rescue
+      retry
+    end
+    password
+  end
+
   def verify_hash(password, hash)
     verify = BCrypt::Password.new(hash)
     password == verify
@@ -54,29 +67,10 @@ class App < Session
     Dir.glob('*').select {|f| File.directory? f}
   end
 
-  def load_locker(index, password)
+  def start_session(index, password)
     name = get_lockers()
     data = Base64.decode64(File.read("./#{name[index]}/data"))
-    session = Session.new(name[index], password, data)
+    @session = Session.new(name[index], password, data)
   end
-
-  def get_locker_name
-    @locker['name']
-  end
-
-  def verify_pword(user_input)
-    raise WrongPassword if @locker['password'] != user_input
-    @locker['password'] == user_input
-  end
-
-  def get_locker_data
-    @locker['data']
-  end
-
-  def get_password_names
-    @locker['data']['passwords'].map {|password| password['name']}
-  end
-end
-
 
 end
