@@ -197,6 +197,56 @@ RSpec.describe Locker do
     end
 
   end
+
+  describe 'Deleting entries' do
+    before(:each) do
+      @test_data = {
+        'passwords' => [
+          {
+          'name' => 'gmail',
+          'user' => 'chris@gmail.com',
+          'pword' => 'temporary'
+         }],
+      
+        'servers' => [
+          {
+          'name' => 'local',
+          'user' => 'admin',
+          'pword' => 'temporary',
+          'IP_address' => '192.168.1.12',
+          'ports' => [
+            '21 - open',
+            '45 - open',
+            '65 - open'
+            ],
+          'notes' => 'This server is currently down'
+          }
+        ],
+        'notes' => [
+          {
+            'name' => 'secret phone numbers',
+            'note' => 'phone numbers for famous people'
+          }
+        ]
+      }
+
+      @locker = Locker.new(@test_data)
+    end
+    it 'should delete a password entry' do
+      @locker.delete_entry('passwords', 0)
+      expect(@test_data['passwords'][0]).to eq nil
+    end
+
+    it 'should delete a server entry' do
+      @locker.delete_entry('servers', 0)
+      expect(@test_data['servers'][0]).to eq nil
+    end
+
+    it 'should delete a note entry' do
+      @locker.delete_entry('notes', 0)
+      expect(@test_data['notes'][0]).to eq nil
+    end
+  end
 end
   
 
