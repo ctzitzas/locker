@@ -1,10 +1,10 @@
-
-require_relative '../lib/locker'
-require_relative 'errors'
+require_relative 'locker'
+require_relative 'session'
+require_relative 'error'
 require 'bcrypt'
 require 'json'
 
-class App
+class App < Session
 
   def initialize
 
@@ -14,7 +14,9 @@ class App
       :digits => ('0'..'9').to_a,
       :symbols => ['!', '@', '#', '$', '%', '^', '&', '=', ':', '?', '.', '/', '|', '~', '>', '*', '(', ')', '<']
     }
-    open_locker()
+
+    @session = nil
+    # open_locker()
   end
 
   def test_password(password)
@@ -38,17 +40,24 @@ class App
         raise WeakPassword
       end
     end
-    
+
     return true
   end
 
-  def hash_password(password)
-    BCrypt::Password.create(password)
+  def verify_hash(password, hash)
+    verify = BCrypt::Password.new(hash)
+    password == verify
   end
 
-  def open_locker
-    locker = File.read('data/temp_json')
-    @locker = JSON.parse(locker)
+  def get_lockers()
+    Dir.chdir('./data')
+    Dir.glob('*').select {|f| File.directory? f}
+  end
+
+  def load_locker(index, password)
+    name = get_lockers()
+    data = Base64.decode64(File.read("./#{name[index]}/data"))
+    session = Session.new(name[index], password, data)
   end
 
   def get_locker_name
@@ -69,3 +78,5 @@ class App
   end
 end
 
+
+end
