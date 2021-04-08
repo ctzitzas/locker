@@ -1,6 +1,7 @@
 require 'openssl'
 require 'bcrypt'
 require 'json'
+require 'base64'
 
 class Session
 
@@ -23,7 +24,7 @@ class Session
 
   def write_to_disk(data)
     hash = create_hash(@password)
-    enc_data = Base64.encode64(encrypt_data(JSON.generate(data)))
+    enc_data = Base64.encode64(encrypt_it(JSON.generate(data)))
     File.open("data/#{@name}/pword",'w+') do |f|
       f.write(hash)
     end
