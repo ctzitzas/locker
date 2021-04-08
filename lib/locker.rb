@@ -41,28 +41,9 @@ class Locker
     @data[category][index][entry] = new
   end
 
-  def edit_password()
 
-  end
-  
-  def edit_server
-
-  end
-
-  def edit_note
-
-  end
-
-  def delete_password
-
-  end
-
-  def delete_server
-
-  end
-
-  def delete_note
-
+  def delete_entry(category, index)
+    @data[category].delete_at(index)
   end
   
   
