@@ -268,33 +268,30 @@ RSpec.describe App do
     end
   end
 
+  describe 'Generate strong password' do
+    before(:each) do
+      @app = App.new
+      @password = @app.generate_password
+    end
+  
+    it 'should generate an 8 character long password' do
+      expect(@password.length).to eq 8
+    end
+  
+    it 'should confirm the password is strong' do
+      expect(@app.test_password(@password)).to be true
+    end
+  
+  end
+
   describe 'Authentication' do
   
-  
   end
   
-  describe 'Generate strong password' do
-  
-    # it 'should generate an 8 character long password' do
-  
-    # end
-  
-    # it 'should confirm the password is strong' do
-  
-    # end
-  
-    # it 'should save password as a hash and be unreadable do
-  
-    # end
-  
-    # it 'should copy password to clipboard' do
-  
-    # end
-  
-  end
 end
 
 RSpec.describe Session do
-
+  
+    end
 end
 
