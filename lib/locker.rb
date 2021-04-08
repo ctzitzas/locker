@@ -17,7 +17,6 @@ class Locker
       'user' => username,
       'pword' => password
     }
-    @data
   end
 
   def add_server(name, user, pword, ip_address, ports = nil, notes = nil)
@@ -29,7 +28,6 @@ class Locker
       'ports' => ports,
       'notes' => notes
     }
-    @data
   end
 
   def add_note(name, note)
@@ -37,11 +35,13 @@ class Locker
       'name' => name,
       'note' => note
     }
-    @data
-
   end
 
-  def edit_password
+  def edit_entry(category, index, entry, new)
+    @data[category][index][entry] = new
+  end
+
+  def edit_password()
 
   end
   
