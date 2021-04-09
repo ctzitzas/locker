@@ -5,20 +5,16 @@ require 'base64'
 
 class Session
 
-  def initialize(name, plain_password, data)
+  def initialize(name, plain_password, encrypted_data = nil)
     @name = name
     @password = plain_password
     @salt = 'thissalt'
-    # data == nil ? @data = set_up() : @data = JSON.parse(decrypt_it(data))
-    @data = data
+    encrypted_data == nil ? @data = set_up() : @data = JSON.parse(decrypt_it(encrypted_data))
   end
 
   def set_up
-    empty_data = {
-      'passwords' => {},
-      'servers' => {},
-      'notes' => {}
-    }
+    empty_data = { 'passwords' => {}, 'servers' => {}, 'notes' => {} }
+    system 'mkdir', "../data/#{@name}"
     write_to_disk(empty_data)
     empty_data
   end
@@ -26,16 +22,16 @@ class Session
   def write_to_disk(data)
     hash = create_hash(@password)
     enc_data = Base64.encode64(encrypt_it(JSON.generate(data)))
-    File.open("data/#{@name}/pword",'w+') do |f|
+    File.open("../data/#{@name}/data",'w+') do |f|
       f.write(hash)
     end
-    File.open("data/#{@name}/data",'w+') do |f|
+    File.open("../data/#{@name}/crypt",'w+') do |f|
       f.write(enc_data)
     end
   end
 
   def create_hash(password)
-    BCrypt::Password.create("my password")
+    BCrypt::Password.create(password)
   end
 
   def encrypt_it(data)
@@ -59,7 +55,7 @@ class Session
   end
 
   def get_entry(category, index)
-    @data[category][index].map {|k,v| v}
+    @data[category][index].map {|k,value| value}
   end
 
 end
