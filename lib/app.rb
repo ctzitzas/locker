@@ -94,8 +94,57 @@ class App
     @prompt.keypress('Press key to return to main menu')
   end
 
+  def login
+    lockers = get_lockers
+    begin
+      display_header()
+      puts 'Select a locker to login to:'
+      name = @prompt.select('Lockers:') do |locker|
+        lockers.each {|name| locker.choice name, name}
+      end
+      password = prompt.mask('Enter password:')
+      raise WrongPassword if verify_password(password, name) == false
+    rescue WrongPassword
+      @prompt.error("Wrong password!")
+      @prompt.keypress("Press key to try again")
+      retry
+    end
+    start_session(name, password)
+    locker_menu
+  end
+
+  def locker_menu
+    display_header
+    input = @prompt.select("What would you like to do?") do |action|
+      action.choice 'View'
+      action.choice 'Add'
+      action.choice 'Edit'
+      action.choice 'Quit'
+    end
+    action_select(input)
+  end
+
+  def action_select(input)
+    case input
+    when 'View'
+      input = show_categories
+    when 'Add'
+      input = show_categories
+    when 'Edit'
+      input = show_categories
+    end
+  end
+
+  def show_categories
+    display_header
+    input = @prompt.select('Pick a category:') do |category|
+      category.choice 'Passwords', 1
+      category.choice 'Servers', 2
+      category.choice 'Notes', 3
+    end
+  end
+
   def test_password(password)
-    
     low_case = high_case = digits = symbols = 0
     char_arr = password.split('')
     char_arr.each do |char| 
@@ -104,11 +153,8 @@ class App
       digits += 1 if @pword_chars[:digits].include?(char)
       symbols += 1 if @pword_chars[:symbols].include?(char)
     end
-      
     raise ShortPassword if char_arr.length < 8
-    if low_case < 1 || high_case < 1 || digits < 1 || symbols < 1
-      raise WeakPassword
-    end
+    raise WeakPassword if low_case < 1 || high_case < 1 || digits < 1 || symbols < 1
     return true
   end
 
