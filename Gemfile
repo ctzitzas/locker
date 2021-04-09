@@ -12,6 +12,8 @@ gem "bcrypt", "~> 3.1"
 
 gem "clipboard", "~> 1.3"
 
+gem "ffi", :platforms => [:mswin, :mingw]
+
 gem "tty-prompt", "~> 0.23.0"
 
 gem "tty-editor", "~> 0.6.0"
