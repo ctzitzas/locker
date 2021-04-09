@@ -5,6 +5,7 @@ require 'bcrypt'
 require 'json'
 require 'tty-prompt'
 require 'artii'
+require 'clipboard'
 
 class App 
 
@@ -21,6 +22,7 @@ class App
     @prompt = TTY::Prompt.new
     @artii = Artii::Base.new :font => 'slant'
     @session = nil
+    @locker =nil
   end
 
   def run
@@ -98,8 +100,7 @@ class App
     lockers = get_lockers
     begin
       display_header()
-      puts 'Select a locker to login to:'
-      name = @prompt.select('Lockers:') do |locker|
+      name = @prompt.select('Select a locker to login to:') do |locker|
         lockers.each {|name| locker.choice name, name}
       end
       password = prompt.mask('Enter password:')
@@ -128,19 +129,91 @@ class App
     case input
     when 'View'
       input = show_categories
+      view(input)
     when 'Add'
       input = show_categories
+      add(input)
     when 'Edit'
       input = show_categories
+      edit(input)
     end
   end
 
   def show_categories
     display_header
     input = @prompt.select('Pick a category:') do |category|
-      category.choice 'Passwords', 1
-      category.choice 'Servers', 2
-      category.choice 'Notes', 3
+      category.choice 'passwords'
+      category.choice 'servers'
+      category.choice 'notes'
+    end
+  end
+
+  def add(input)
+    display_header
+    puts "Give the entry a name and then enter username and password"
+    entry = []
+    entry << @prompt.ask("Name?")
+    entry << @prompt.ask("Username?")
+    entry << password_prompt()
+    @prompt.keypress("Press key to save password")
+    @session.add_password(entry[0], entry[1], entry[2])
+    @session.write_to_disk
+    locker_menu
+  end
+
+  def password_prompt
+    
+    input = @prompt.select("Enter or generate password?") do |menu|
+      menu.choice "Generate password"
+      menu.choice "Enter password"
+    end
+
+    case input
+    when "Generate password"
+      new_password = generate_password
+      puts "Generated password: #{new_password}"
+      return new_password
+    when "Enter password"
+      begin
+        password = @prompt.ask('Enter password:')
+        password_verify = @prompt.ask('Enter password again to verify:')
+        raise NoMatch if password != password_verify
+        test_password(password)
+      rescue NoMatch
+        @prompt.error("Passwords don't match!")
+        @prompt.keypress("Press key to try again")
+        retry
+      rescue ShortPassword, WeakPassword
+        @prompt.error("Password isn't strong!")
+        @prompt.error("We recommend changing it in the future.")
+        return password
+      end
+      return password
+    end
+  end
+
+  def view(category)
+    entries = @session.list_entries(category)
+    display_header()
+    index = @prompt.select('Pick an entry to view:') do |entry|
+      entries.each_with_index {|name, index| entry.choice name, index}
+    end
+    puts @session.display_entry(category, index)
+    input = @prompt.select('Select an option:') do |option|
+      option.choice 'Copy username to clipboard', 1
+      option.choice 'Copy a password to clipboard', 2
+      option.choice 'Exit', 3
+    end
+
+    case input
+    when 1
+      Clipboard.copy(@session.get_entry(category, index)['user'])
+      locker_menu
+    when 2
+      Clipboard.copy(@session.get_entry(category, index)['pword'])
+      locker_menu
+    when 3
+      locker_menu
     end
   end
 
@@ -170,6 +243,7 @@ class App
     rescue
       retry
     end
+    return password
   end
 
   def verify_password(password, name)
