@@ -98,7 +98,7 @@ RSpec.describe Locker do
         ])
     end
 
-    it 'should be able to add a server to server category' do
+    it 'should add a server to server category' do
       expect(@locker.add_server('local', 'admin', 'temporary', '192.168.1.12')).to eq (
         [
           'name' => 'local',
@@ -110,7 +110,7 @@ RSpec.describe Locker do
         ])
     end
 
-    it 'should be able to add a note to note category' do
+    it 'should add a note to note category' do
       expect(@locker.add_note('Secret recipes', 'List of herbs and spices')).to eq (
         [
           'name' => 'Secret recipes',
@@ -229,9 +229,9 @@ RSpec.describe Locker do
           }
         ]
       }
-
       @locker = Locker.new(@test_data)
     end
+
     it 'should delete a password entry' do
       @locker.delete_entry('passwords', 0)
       expect(@test_data['passwords'][0]).to eq nil
@@ -252,18 +252,19 @@ end
 
 RSpec.describe App do
   describe 'Password Testing' do
-    it 'should raise an error if password is short' do
+    before(:each) do
       app = App.new
+    end
+
+    it 'should raise an error if password is short' do
       expect{app.test_password('weak')}.to raise_error(ShortPassword)
     end
 
     it 'should return true if password is strong' do
-      app = App.new
       expect(app.test_password('GreatPassword1!')).to be true
     end
 
     it 'should raise an error if password is weak' do
-      app = App.new
       expect{app.test_password('weak1234')}.to raise_error(WeakPassword)
     end
   end
@@ -274,8 +275,8 @@ RSpec.describe App do
       @password = @app.generate_password
     end
   
-    it 'should generate an 8 character long password' do
-      expect(@password.length).to eq 8
+    it 'should generate a 9 character long password' do
+      expect(@password.length).to eq 9
     end
   
     it 'should confirm the password is strong' do
@@ -351,19 +352,19 @@ RSpec.describe Session do
       @session = Session.new('temp', 'temporary', @test_data)
     end
 
-    it 'should return the names of all entries within passwords category' do
+    it 'should return the names of all entries within passwords category as an array' do
       expect(@session.list_entries('passwords')).to eq ['gmail', 'apple', 'github'] 
     end
 
-    it 'should return all information in a password entry within an array' do
+    it 'should return all information from a password entry as an array' do
       expect(@session.get_entry('passwords', 0)).to eq ['gmail', 'chris@gmail.com', 'temporary']
     end
 
-    it 'should return all information in a server entry within an array' do
+    it 'should return all information from a server entry as an array' do
       expect(@session.get_entry('servers', 0)).to eq ['local', 'admin', 'temporary', '192.168.1.12', ['21 - open', '45 - open', '65 - open'], 'This server is currently down']
     end
 
-    it 'should return all information in a note entry within an array' do
+    it 'should return all information from a note entry as an array' do
       expect(@session.get_entry('notes', 0)).to eq ['list of secret recipes', 'Not much here at the moment']
     end
   end
