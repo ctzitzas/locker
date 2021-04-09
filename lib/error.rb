@@ -7,3 +7,10 @@ end
 class WrongPassword < StandardError
   
 end
+
+class NoMatch < StandardError
+end
+
+class NameTaken < StandardError
+
+end
