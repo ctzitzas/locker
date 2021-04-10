@@ -129,9 +129,23 @@ class App
     end
   end
 
+  def get_lockers()
+    begin
+      Dir.chdir('./data')
+      Dir.glob('*').select {|f| File.directory? f}
+    rescue
+      Dir.chdir('../data')
+      Dir.glob('*').select {|f| File.directory? f}
+    end
+  end
+
+
   def start_session(name, password)
-    data = Base64.decode64(File.read("../data/#{name}/crypt"))
-    @session = Session.new(name, password, data)
+    @session = Session.new(@name, @password, load_data)
+  end
+
+  def load_data()
+    Base64.decode64(File.read("../data/#{@name}/crypt"))
   end
 
   # Display session display
@@ -217,9 +231,20 @@ class App
 
   # Add entry display
 
-  def add_menu(input)
+  def add_menu(category)
+    case category
+    when 'passwords'
+      add_password_entry(category)
+    when 'servers'
+      add_server_entry(category)
+    when 'notes'
+      add_note_entry(category)
+    end
+  end
+
+  def add_password_entry
     display_header
-    puts "Give the entry a name and then enter username and password"
+    puts "Enter details:"
     entry = []
     entry << @prompt.ask("Name?")
     entry << @prompt.ask("Username?")
@@ -227,6 +252,40 @@ class App
     @prompt.keypress("Press key to save password")
     @session.add_password(entry[0], entry[1], entry[2])
     @session.write_to_disk
+    @session = Session.new
+    session_menu
+  end
+
+  def add_server_entry(category)
+    display_header
+    puts "Enter details:"
+    entry = []
+    entry << @prompt.ask("Name?")
+    entry << @prompt.ask("Username?")
+    entry << password_prompt()
+    entry << @prompt.ask('Ip address?')
+    entry << @prompt.ask('Notes?')
+    @prompt.keypress("Press key to save server")
+    @session.add_server(entry[0], entry[1], entry[2], entry[3], entry[4])
+    save_add
+  end
+
+  def add_note_entry(category)
+    display_header
+    puts "Enter details:"
+    entry = []
+    entry << @prompt.ask("Name?")
+    entry << @prompt.ask("Note?")
+    @prompt.keypress("Press key to save note")
+    @session.add_note(entry[0], entry[1])
+    save_add
+  end
+
+  def save_add
+    @session.write_to_disk
+    @session = Session.new(@name, @password, load_data)
+    @prompt.ok('Entry added!')
+    @prompt.keypress('Press key to continue')
     session_menu
   end
 
@@ -249,6 +308,24 @@ class App
     end
   end
 
+  def enter_password
+    begin
+      password = @prompt.ask('Enter password:')
+      password_verify = @prompt.ask('Enter password again to verify:')
+      raise NoMatch if password != password_verify
+      test_password(password)
+    rescue NoMatch
+      @prompt.error("Passwords don't match!")
+      @prompt.keypress("Press key to try again")
+      retry
+    rescue ShortPassword, WeakPassword
+      @prompt.error("Password isn't strong!")
+      @prompt.error("We recommend changing it in the future.")
+      return password
+    end
+    return password
+  end
+
   # Edit entry display
 
   def edit_menu(category)
@@ -259,8 +336,7 @@ class App
     end
     puts @session.get_entry(category, index)
     input = edit_prompt
-    edit_select(category, input, index)
-    
+    edit_entry(category, input, index)
   end
 
   def edit_prompt
@@ -273,7 +349,18 @@ class App
     end
   end
 
-  def edit_select(category, input, index)
+  def edit_entry(category, input, index)
+    case category
+    when 'passwords'
+      edit_password
+    when 'servers'
+      edit_server
+    when 'notes'
+      edit_notes
+    end
+  end
+
+  def edit_password
     case input
     when 1
       new_name = @prompt.ask('Enter the new name:')
@@ -300,25 +387,6 @@ class App
       session_menu
     when 5
     end
-  end
-
-
-  def enter_password
-    begin
-      password = @prompt.ask('Enter password:')
-      password_verify = @prompt.ask('Enter password again to verify:')
-      raise NoMatch if password != password_verify
-      test_password(password)
-    rescue NoMatch
-      @prompt.error("Passwords don't match!")
-      @prompt.keypress("Press key to try again")
-      retry
-    rescue ShortPassword, WeakPassword
-      @prompt.error("Password isn't strong!")
-      @prompt.error("We recommend changing it in the future.")
-      return password
-    end
-    return password
   end
 
   # Password and authorisation functions
@@ -355,15 +423,5 @@ class App
   def verify_password(password, name)
     hash = BCrypt::Password.new(File.read("../data/#{name}/data"))
     hash == password
-  end
-
-  def get_lockers()
-    begin
-      Dir.chdir('./data')
-      Dir.glob('*').select {|f| File.directory? f}
-    rescue
-      Dir.chdir('../data')
-      Dir.glob('*').select {|f| File.directory? f}
-    end
   end
 end
