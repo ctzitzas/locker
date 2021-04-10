@@ -20,7 +20,7 @@ class Session
     empty_data = { 'passwords' => [], 'servers' => [], 'notes' => [] }
   end
 
-  def write_to_disk()
+  def write_to_disk
     hash = create_hash(@password)
     enc_data = Base64.encode64(encrypt_it(JSON.generate(@data)))
     File.open("../data/#{@name}/data",'w+') do |f|
@@ -30,6 +30,8 @@ class Session
       f.write(enc_data)
     end
   end
+
+# Encryption and hash functions
 
   def create_hash(password)
     BCrypt::Password.create(password)
@@ -51,17 +53,21 @@ class Session
     plain << decryptor.final
   end
 
-  def list_entries(category)
-    @data[category].map {|hash| hash['name']}
+  # Getter functions
+
+  def get_entries(category)
+    @data[category].map {|entry| entry['name']}
   end
 
-  def get_entry(category, index)
+  def get_value(category, index)
     @data[category][index]
   end
 
-  def display_entry(category, index)
-    display = @data[category][index].map {|key, value| "#{key} - #{value}"}
+  def get_entry(category, index)
+    CategoryEmpty if @data[category][index].map {|key, value| "#{key} - #{value}"}
   end
+
+  # Add entry functions
 
   def add_password(name, username, password)
     @data['passwords'] << {
@@ -88,6 +94,8 @@ class Session
       'note' => note
     }
   end
+
+  # Edit entry functions
 
   def edit_entry(category, index, entry, new)
     @data[category][index][entry] = new
