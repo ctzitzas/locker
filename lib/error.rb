@@ -14,3 +14,7 @@ end
 class NameTaken < StandardError
 
 end
+
+class CategoryEmpty < StandardError
+  
+end
