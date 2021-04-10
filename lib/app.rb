@@ -1,4 +1,3 @@
-require_relative 'locker'
 require_relative 'session'
 require_relative 'error'
 require 'bcrypt'
@@ -23,6 +22,8 @@ class App
     @artii = Artii::Base.new :font => 'slant'
     @session = nil
     @locker =nil
+    @name = nil
+    @password = nil
   end
 
   def run
@@ -31,7 +32,7 @@ class App
       input = @prompt.select('Menu') do |menu|
         menu.choice "Create new locker", 1
         menu.choice "Open locker", 2
-        menu.choice "Exit", 3
+        menu.choice "Quit", 3
       end
       process_main_menu(input)
     end
@@ -49,25 +50,21 @@ class App
   def process_main_menu(choice)
     case choice
     when 1
-      create_locker
+      create_locker_menu
     when 2
-      login
+      login_menu
     when 3
       system 'clear'
       exit
     end
   end
 
-  def create_locker
+  # Locker creation display
+
+  def create_locker_menu
     begin
       display_header()
-      results = []
-      name = @prompt.ask("Name your locker:")
-      password = @prompt.mask("Enter a password:")
-      password_verify = @prompt.mask("Confirm password:")
-      raise NoMatch if password != password_verify
-      raise NameTaken if get_lockers.include? name
-      test_password(password)
+      create_locker_prompt()
     rescue NoMatch
       @prompt.error("Passwords don't match!")
       @prompt.keypress("Press key to try again")
@@ -90,37 +87,62 @@ class App
       @prompt.keypress("Press key to try again")
       retry
     end
-    Session.new(name, password)
+    create_success()
+  end
+
+  def create_locker_prompt
+      @name = @prompt.ask("Name your locker:")
+      @password = @prompt.mask("Enter a password:")
+      password_verify = @prompt.mask("Confirm password:")
+      raise NoMatch if @password != password_verify
+      raise NameTaken if get_lockers.include? name
+      test_password(@password)
+  end
+
+  def create_success
+    Session.new(@name, @password)
     puts "Locker creation sucessful!"
     puts 'Login to start adding passwords'
     @prompt.keypress('Press key to return to main menu')
   end
 
-  def login
-    lockers = get_lockers
+  # Locker login display
+
+  def login_menu
+    display_header()
+    display_login()
     begin
-      display_header()
-      name = @prompt.select('Select a locker to login to:') do |locker|
-        lockers.each {|name| locker.choice name, name}
-      end
-      password = prompt.mask('Enter password:')
-      raise WrongPassword if verify_password(password, name) == false
+      @password = @prompt.mask('Enter password:')
+      raise WrongPassword if verify_password(@password, @name) == false
     rescue WrongPassword
       @prompt.error("Wrong password!")
-      @prompt.keypress("Press key to try again")
       retry
     end
-    start_session(name, password)
-    locker_menu
+    start_session(@name, @password)
+    session_menu
   end
 
-  def locker_menu
+  def display_login
+    lockers = get_lockers
+    @name = @prompt.select('Select a locker to login to:') do |locker|
+      lockers.each {|name| locker.choice name, name}
+    end
+  end
+
+  def start_session(name, password)
+    data = Base64.decode64(File.read("../data/#{name}/crypt"))
+    @session = Session.new(name, password, data)
+  end
+
+  # Display session display
+
+  def session_menu
     display_header
     input = @prompt.select("What would you like to do?") do |action|
       action.choice 'View'
       action.choice 'Add'
       action.choice 'Edit'
-      action.choice 'Quit'
+      action.choice 'Quit session'
     end
     action_select(input)
   end
@@ -128,27 +150,74 @@ class App
   def action_select(input)
     case input
     when 'View'
-      input = show_categories
-      view(input)
+      view_menu(select_category)
     when 'Add'
-      input = show_categories
-      add(input)
+      add_menu(select_category)
     when 'Edit'
-      input = show_categories
-      edit(input)
+      edit_menu(select_category)
+    when 'Quit session'
+      @session = nil
     end
   end
 
-  def show_categories
+  def select_category
     display_header
-    input = @prompt.select('Pick a category:') do |category|
+    @prompt.select('Pick a category:') do |category|
       category.choice 'passwords'
       category.choice 'servers'
       category.choice 'notes'
     end
   end
 
-  def add(input)
+  # View entry display
+
+  def view_menu(category)
+    entries = @session.get_entries(category)
+    begin
+      raise CategoryEmpty if entries == []
+    rescue
+      @prompt.error('No entries in category!')
+      @prompt.keypress("Press key to return to menu.")
+      session_menu
+    end
+    display_header()
+    entry_index = @prompt.select('Pick an entry to view:') do |entry|
+      entries.each_with_index {|name, index| entry.choice name, index}
+    end
+    puts @session.get_entry(category, entry_index)
+    view_select(category, view_options, entry_index)
+  end
+
+  def view_options
+    @prompt.select('Select an option:') do |option|
+      option.choice 'Copy username to clipboard', 1
+      option.choice 'Copy a password to clipboard', 2
+      option.choice 'Exit', 3
+    end
+  end
+
+  def view_select(category, option, entry_index)
+    case option
+    when 1
+      Clipboard.copy(@session.get_value(category, entry_index)['user'])
+      display_header
+      @prompt.ok('Copied to clipboard!')
+      @prompt.keypress('Press key to return to menu')
+      session_menu
+    when 2
+      Clipboard.copy(@session.get_value(category, entry_index)['pword'])
+      display_header
+      @prompt.ok('Copied to clipboard!')
+      @prompt.keypress('Press key to return to menu')
+      session_menu
+    when 3
+      session_menu
+    end
+  end
+
+  # Add entry display
+
+  def add_menu(input)
     display_header
     puts "Give the entry a name and then enter username and password"
     entry = []
@@ -158,64 +227,101 @@ class App
     @prompt.keypress("Press key to save password")
     @session.add_password(entry[0], entry[1], entry[2])
     @session.write_to_disk
-    locker_menu
+    session_menu
   end
 
   def password_prompt
-    
     input = @prompt.select("Enter or generate password?") do |menu|
       menu.choice "Generate password"
       menu.choice "Enter password"
     end
-
+    password_option
+  end
+  
+  def password_option
     case input
     when "Generate password"
       new_password = generate_password
       puts "Generated password: #{new_password}"
-      return new_password
+      new_password
     when "Enter password"
-      begin
-        password = @prompt.ask('Enter password:')
-        password_verify = @prompt.ask('Enter password again to verify:')
-        raise NoMatch if password != password_verify
-        test_password(password)
-      rescue NoMatch
-        @prompt.error("Passwords don't match!")
-        @prompt.keypress("Press key to try again")
-        retry
-      rescue ShortPassword, WeakPassword
-        @prompt.error("Password isn't strong!")
-        @prompt.error("We recommend changing it in the future.")
-        return password
-      end
-      return password
+      enter_password
     end
   end
 
-  def view(category)
-    entries = @session.list_entries(category)
-    display_header()
-    index = @prompt.select('Pick an entry to view:') do |entry|
+  # Edit entry display
+
+  def edit_menu(category)
+    entries = @session.get_entries(category)
+    display_header
+    index = @prompt.select('Pick an entry to edit;') do |entry|
       entries.each_with_index {|name, index| entry.choice name, index}
     end
-    puts @session.display_entry(category, index)
-    input = @prompt.select('Select an option:') do |option|
-      option.choice 'Copy username to clipboard', 1
-      option.choice 'Copy a password to clipboard', 2
-      option.choice 'Exit', 3
-    end
+    puts @session.get_entry(category, index)
+    input = edit_prompt
+    edit_select(category, input, index)
+    
+  end
 
-    case input
-    when 1
-      Clipboard.copy(@session.get_entry(category, index)['user'])
-      locker_menu
-    when 2
-      Clipboard.copy(@session.get_entry(category, index)['pword'])
-      locker_menu
-    when 3
-      locker_menu
+  def edit_prompt
+    @prompt.select('Select an option:') do |option|
+      option.choice 'Edit name', 1
+      option.choice 'Edit username', 2
+      option.choice 'Edit password', 3
+      option.choice 'Delete entry', 4
+      option.choice 'Exit', 5
     end
   end
+
+  def edit_select(category, input, index)
+    case input
+    when 1
+      new_name = @prompt.ask('Enter the new name:')
+      @session.edit_entry(category, index, 'name', new_name)
+      @session.write_to_disk
+      @prompt.keypress("Edit success! Press a key to exit")
+      session_menu
+    when 2
+      new_username = @prompt.ask('Enter the new username:')
+      @session.edit_entry(category, index, 'username', new_username)
+      @session.write_to_disk
+      @prompt.keypress("Edit success! Press a key to exit")
+      session_menu
+    when 3
+      new_password = password_prompt
+      @session.edit_entry(category, index, 'password', new_password)
+      @session.write_to_disk
+      @prompt.keypress("Edit success! Press a key to exit")
+      session_menu
+    when 4
+      @session.delete_entry(category, index)
+      @session.write_to_disk
+      @prompt.keypress("Deleted! Press a key to exit")
+      session_menu
+    when 5
+    end
+  end
+
+
+  def enter_password
+    begin
+      password = @prompt.ask('Enter password:')
+      password_verify = @prompt.ask('Enter password again to verify:')
+      raise NoMatch if password != password_verify
+      test_password(password)
+    rescue NoMatch
+      @prompt.error("Passwords don't match!")
+      @prompt.keypress("Press key to try again")
+      retry
+    rescue ShortPassword, WeakPassword
+      @prompt.error("Password isn't strong!")
+      @prompt.error("We recommend changing it in the future.")
+      return password
+    end
+    return password
+  end
+
+  # Password and authorisation functions
 
   def test_password(password)
     low_case = high_case = digits = symbols = 0
@@ -248,7 +354,7 @@ class App
 
   def verify_password(password, name)
     hash = BCrypt::Password.new(File.read("../data/#{name}/data"))
-    hash == password.chomp
+    hash == password
   end
 
   def get_lockers()
@@ -260,10 +366,4 @@ class App
       Dir.glob('*').select {|f| File.directory? f}
     end
   end
-
-  def start_session(name, password)
-    data = Base64.decode64(File.read("../data/#{name}/crypt"))
-    @session = Session.new(name, password, data)
-  end
-
 end
