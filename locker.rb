@@ -1,4 +1,4 @@
 require_relative 'lib/app'
 
-app = app.new
+app = App.new
 app.run
