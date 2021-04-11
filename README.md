@@ -3,6 +3,7 @@
 ## About
 
 Version: 0.1.0
+
 Author: Chris Tzitzas
 
 terminal_locker is a password manager for the terminal. terminal_locker saves all data in an encrypted format locally for access from the terminal using the application UI or command line arguments.
