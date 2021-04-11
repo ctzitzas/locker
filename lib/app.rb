@@ -24,16 +24,61 @@ class App
     @prompt = TTY::Prompt.new
     @artii = Artii::Base.new :font => 'slant'
     @data = nil
-    @locker =nil
     @name = nil
     @password = nil
+    @category = nil
   end
 
   def run
+    if ARGV.empty?
+      run_ui
+    else
+      run_argv
+    end
+    
+  end
+
+  def run_ui
     while true
       display_header()
       main_menu()
     end
+  end
+
+  def run_argv
+    if ARGV[0] == 'generate'
+      password = generate_password
+      puts "#{password}"
+      Clipboard.copy(password)
+      @prompt.ok('Generated and copied to clipboard')
+      exit
+    end
+
+    @name = ARGV[0]
+    category = ARGV[1]
+    category = 'passwords' if category == 'p'
+    category = 'servers' if category == 's'
+    category = 'notes' if category == 'n'
+    entry_name = ARGV[2]
+    @password = @prompt.mask('Enter Password:')
+
+    begin
+      raise WrongPassword if verify_password(@password, @name) == false
+    rescue WrongPassword
+      @prompt.error('Wrong Password!')
+      exit
+    end
+
+    open_data(@name, @password)
+    found = @data.get_entry_argv(category, entry_name)
+
+    if category == 'notes'
+      Clipboard.copy(found['note'])
+    else
+      Clipboard.copy(found['pword'])
+    end
+    @prompt.ok('Copied to clipboard')
+    
   end
 
   def display_header()
@@ -68,7 +113,7 @@ class App
   def create_locker
     begin
       display_header()
-      get_locker_info()
+      input_locker_info()
     rescue NoMatch
       @prompt.error("Passwords don't match!")
       @prompt.keypress("Press key to try again")
@@ -98,7 +143,7 @@ class App
     create_data
   end
 
-  def get_locker_info
+  def input_locker_info
     @name = @prompt.ask("Name your locker:")
     @password = @prompt.mask("Enter a password:")
     password_verify = @prompt.mask("Confirm password:")
@@ -168,7 +213,11 @@ class App
   end
 
   def load_data()
-    Base64.decode64(File.read("../data/#{@name}/crypt"))
+    begin
+      Base64.decode64(File.read("./data/#{@name}/crypt"))
+    rescue
+      Base64.decode64(File.read("../data/#{@name}/crypt"))
+    end
   end
 
   # Password and authorisation functions
@@ -203,7 +252,11 @@ class App
   end
 
   def verify_password(password, name)
-    hash = BCrypt::Password.new(File.read("../data/#{name}/data"))
+    begin
+      hash = BCrypt::Password.new(File.read("../data/#{name}/data"))
+    rescue
+      hash = BCrypt::Password.new(File.read("./data/#{name}/data"))
+    end
     hash == password
   end
 end
