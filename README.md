@@ -43,7 +43,7 @@ Use bundler to install dependencies.
 The application also requires openssl, json and base64 ruby libraries
 
 
-## Launch
+## Usage
 
 ### UI
 
