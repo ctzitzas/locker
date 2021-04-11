@@ -19,3 +19,6 @@ end
 
 class NameWithSpaces < StandardError
 end
+
+class NothingEntered < StandardError
+end

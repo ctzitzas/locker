@@ -39,7 +39,6 @@ class App
 
   def run_ui
     while true
-      display_header()
       main_menu()
     end
   end
@@ -89,6 +88,7 @@ class App
   end
 
   def main_menu()
+    display_header
     input = @prompt.select('Menu') do |menu|
       menu.choice "Create new locker", 1
       menu.choice "Open locker", 2
@@ -145,6 +145,7 @@ class App
     @name = @prompt.ask("Name your locker:")
     @password = @prompt.mask("Enter a password:")
     password_verify = @prompt.mask("Confirm password:")
+    raise NothingEntered if @name == nil || @password == nil || password_verify == nil
     raise NoMatch if @password != password_verify
     raise NameTaken if get_lockers.include? @name
     raise NameWithSpaces if find_spaces == true
@@ -174,9 +175,16 @@ class App
   end
 
   def display_login
-    lockers = get_lockers
-    @name = @prompt.select('Select a locker to login to:') do |locker|
-      lockers.each {|name| locker.choice name, name}
+    begin
+      lockers = get_lockers
+      @name = @prompt.select('Select a locker to login to:') do |locker|
+        lockers.each {|name| locker.choice name, name}
+      end
+    rescue NoMethodError
+      @prompt.error('No lockers found!')
+      @prompt.keypress('Press key to return to main menu')
+      display_header
+      main_menu
     end
   end
 

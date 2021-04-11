@@ -9,13 +9,15 @@ class Database
     @name = name
     @password = password
     @salt = 'thissalt'
-    encrypted_data == nil ? @data = set_up() : @data = JSON.parse(decrypt_it(encrypted_data))
-    write_to_disk()
-  end
 
-  def set_up
-    system 'mkdir', "../data/#{@name}"
-    empty_data = { 'passwords' => [], 'servers' => [], 'notes' => [] }
+    if encrypted_data == nil
+      @data = { 'passwords' => [], 'servers' => [], 'notes' => [] }
+      Dir.mkdir("../data/#{@name}")
+    else 
+      @data = JSON.parse(decrypt_it(encrypted_data))
+    end
+    write_to_disk()
+
   end
 
   def write_to_disk

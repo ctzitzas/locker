@@ -38,7 +38,7 @@ module Session
   def view_menu(category)
     entries = @data.get_entries(category)
     rescue_no_entries(entries)
-    display_header()
+    display_header
     entry_index = @prompt.select('Pick an entry to view:') do |entry|
       entries.each_with_index {|name, index| entry.choice name, index}
     end
@@ -102,11 +102,11 @@ module Session
   def add_menu(category)
     case category
     when 'passwords'
-      add_password_entry()
+      add_password_entry
     when 'servers'
-      add_server_entry()
+      add_server_entry
     when 'notes'
-      add_note_entry()
+      add_note_entry
     end
   end
 
@@ -114,31 +114,40 @@ module Session
     display_header
     puts "Enter site details:"
     entry = []
-    entry << @prompt.ask("Name?")
+    entry << name_prompt
     entry << @prompt.ask("Username?")
-    entry << password_prompt()
+    entry << password_prompt
     @data.add_password(entry[0], entry[1], entry[2])
     save_add
   end
 
-  def add_server_entry()
+  def add_server_entry
     display_header
     puts "Enter server details:"
     entry = []
-    entry << @prompt.ask("Name?")
+    entry << 
     entry << @prompt.ask("Username?")
-    entry << password_prompt()
+    entry << password_prompt
     entry << @prompt.ask('Ip address?')
     entry << @prompt.ask('Notes?')
     @data.add_server(entry[0], entry[1], entry[2], entry[3], entry[4])
     save_add
   end
 
+  def name_prompt
+    begin
+      @prompt.ask("Name?")
+      if entry[0] == nil then raise NoNameEntered end
+    rescue
+      @prompt.warn('')
+    end
+  end
+
   def add_note_entry()
     display_header
     puts "Enter note details:"
     entry = []
-    entry << @prompt.ask("Name?")
+    entry << name_prompt
     entry << @prompt.ask("Note?")
     @data.add_note(entry[0], entry[1])
     save_add
@@ -164,7 +173,9 @@ module Session
     case input
     when "Generate password"
       new_password = generate_password
-      puts "Generated password: #{new_password}"
+      puts "Password: #{new_password}"
+      Clipboard.copy("#{new_password}")
+      @prompt.warn('Password copied to clipboard')
       new_password
     when "Enter password"
       enter_password
