@@ -182,8 +182,8 @@ module Session
       @prompt.keypress("Press key to try again")
       retry
     rescue ShortPassword, WeakPassword
-      @prompt.error("Password isn't strong!")
-      @prompt.error("We recommend changing it in the future.")
+      @prompt.warn("Password isn't strong!")
+      @prompt.warn("We recommend changing it in the future.")
       return password
     end
     return password

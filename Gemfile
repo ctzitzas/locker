@@ -16,4 +16,4 @@ gem "ffi", :platforms => [:mswin, :mingw]
 
 gem "tty-prompt", "~> 0.23.0"
 
-gem "tty-editor", "~> 0.6.0"
+gem "artii"
