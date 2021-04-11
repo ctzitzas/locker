@@ -1,6 +1,9 @@
 require_relative '../lib/app'
 require_relative '../lib/database'
 
+# Most tests starting failing after i implemented persistant storage and encryption and I didn't have time to rewrite and fix all the broken tests before submission.
+
+
 RSpec.describe Database do
   describe 'Getting names for entries' do
     before(:each) do

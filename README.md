@@ -1,4 +1,4 @@
-# terminal_locker
+# locker
 
 ## About
 

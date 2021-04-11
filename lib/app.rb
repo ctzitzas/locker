@@ -35,7 +35,6 @@ class App
     else
       run_argv
     end
-    
   end
 
   def run_ui
@@ -78,7 +77,6 @@ class App
       Clipboard.copy(found['pword'])
     end
     @prompt.ok('Copied to clipboard')
-    
   end
 
   def display_header()
