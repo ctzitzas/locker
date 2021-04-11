@@ -21,11 +21,20 @@ class Database
   def write_to_disk
     hash = create_hash(@password)
     enc_data = Base64.encode64(encrypt_it(JSON.generate(@data)))
-    File.open("../data/#{@name}/data",'w+') do |f|
-      f.write(hash)
-    end
-    File.open("../data/#{@name}/crypt",'w+') do |f|
-      f.write(enc_data)
+    begin
+      File.open("./data/#{@name}/data",'w+') do |f|
+        f.write(hash)
+      end
+      File.open("./data/#{@name}/crypt",'w+') do |f|
+        f.write(enc_data)
+      end
+    rescue
+      File.open("../data/#{@name}/data",'w+') do |f|
+        f.write(hash)
+      end
+      File.open("../data/#{@name}/crypt",'w+') do |f|
+        f.write(enc_data)
+      end
     end
   end
 
@@ -63,6 +72,14 @@ class Database
 
   def get_entry(category, index)
     @data[category][index].map {|key, value| "#{key} - #{value}"}
+  end
+
+  def get_entry_argv(category, entry_name)
+    search = []
+    @data[category].each do |entry|
+      if entry['name'] == entry_name then search = entry end
+    end
+    search
   end
 
   # Add entry functions
