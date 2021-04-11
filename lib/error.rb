@@ -16,3 +16,6 @@ end
 
 class CategoryEmpty < StandardError
 end
+
+class NameWithSpaces < StandardError
+end

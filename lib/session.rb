@@ -42,16 +42,26 @@ module Session
     entry_index = @prompt.select('Pick an entry to view:') do |entry|
       entries.each_with_index {|name, index| entry.choice name, index}
     end
+    display_header
+    puts ' '
     puts @data.get_entry(category, entry_index)
+    puts ' '
     input = view_options
     view_select(category, input, entry_index)
+  end
+
+  def view_options_notes
+    @prompt.select('Select an option:') do |option|
+      option.choice 'Copy note to clipboard', 3
+      option.coice 'Exit', 4
+    end
   end
 
   def view_options
     @prompt.select('Select an option:') do |option|
       option.choice 'Copy username to clipboard', 1
       option.choice 'Copy a password to clipboard', 2
-      option.choice 'Exit', 3
+      option.choice 'Exit', 4
     end
   end
 
@@ -59,17 +69,22 @@ module Session
     case option
     when 1
       Clipboard.copy(@data.get_value(category, entry_index)['user'])
-      @prompt.ok('Copied to clipboard!')
-      @prompt.keypress('Press key to return to menu')
-      data_menu
+      copy_success
     when 2
       Clipboard.copy(@data.get_value(category, entry_index)['pword'])
-      @prompt.ok('Copied to clipboard!')
-      @prompt.keypress('Press key to return to menu')
-      data_menu
+      copy_success
     when 3
+      Clipboard.copy(@data.get_value(category, entry_index)['note'])
+      copy_success
+    when 4
       data_menu
     end
+  end
+
+  def copy_success
+    @prompt.ok('Copied to clipboard!')
+    @prompt.keypress('Press key to return to menu')
+    data_menu
   end
 
   def rescue_no_entries(entries)
@@ -131,7 +146,7 @@ module Session
 
   def save_add
     @data.write_to_disk
-    @data = Data.new(@name, @password, load_data)
+    @data = Database.new(@name, @password, load_data)
     @prompt.ok('Entry added!')
     @prompt.keypress('Press key to continue')
     data_menu
@@ -174,7 +189,7 @@ module Session
     return password
   end
 
-  # Edit entry display
+  # Edit entry
 
   def edit_menu(category)
     entries = @data.get_entries(category)
@@ -183,7 +198,9 @@ module Session
     index = @prompt.select('Pick an entry to edit;') do |entry|
       entries.each_with_index {|name, index| entry.choice name, index}
     end
+    display_header
     puts @data.get_entry(category, index)
+    puts ''
     edit(category, index)
   end
 
@@ -226,6 +243,7 @@ module Session
       @data.delete_entry(category, index)
       save_edit
     when 5
+      data_menu
     end
   end
 
@@ -298,7 +316,7 @@ module Session
 
   def save_edit(action)
     @data.write_to_disk
-    @data = Data.new(@name, @password, load_data)
+    @data = Database.new(@name, @password, load_data)
     @prompt.ok("Entry #{action}!")
     @prompt.keypress('Press key to continue')
     data_menu

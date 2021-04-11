@@ -73,6 +73,10 @@ class App
       @prompt.error("Passwords don't match!")
       @prompt.keypress("Press key to try again")
       retry
+    rescue NameWithSpaces
+      @prompt.error("Cannot have spaces in locker name!")
+      @prompt.keypress('Press key to try again')
+      retry
     rescue NameTaken
       @prompt.error("Locker name taken!")
       @prompt.keypress("Press key to try again")
@@ -100,7 +104,13 @@ class App
     password_verify = @prompt.mask("Confirm password:")
     raise NoMatch if @password != password_verify
     raise NameTaken if get_lockers.include? @name
+    raise NameWithSpaces if find_spaces == true
     test_password(@password)
+  end
+
+  def find_spaces
+    name = @name.split('')
+    name.include?(' ')
   end
 
   def create_data
