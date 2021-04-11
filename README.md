@@ -1,16 +1,15 @@
-# locker
+# Locker
 
 ## About
 
 Version: 0.1.0
-
 Author: Chris Tzitzas
 
-terminal_locker is a password manager for the terminal. terminal_locker saves all data in an encrypted format locally for access from the terminal using the application UI or command line arguments.
+Locker is a password manager for the terminal. Locker saves all data in an encrypted format locally for access from the terminal using the application UI or command line arguments.
 
 ## Features
 
-terminal_locker is a password manager for IT professionals to safely and securely save important credentials to your local hardrive. All data and passwords are stored using 256bit encryption. It offers simple password saving as well as saving server credentials and important notes. The program can also autogenerate passwords for you and checks the strength of any password you save in the locker.
+Locker is a password manager for IT professionals to safely and securely save important credentials to your local hardrive. All data and passwords are stored using 256bit encryption. It offers simple password saving as well as saving server credentials and important notes. The program can also autogenerate passwords for you and checks the strength of any password you save in the locker.
 
 ## Installation
 
@@ -26,7 +25,7 @@ System requirements:
 
 `bundler`
 
-terminal_locker also needs the following gems installed to run sucessfully:
+Locker also needs the following gems installed to run sucessfully:
 
 `"rspec", "~> 3.10"`
 
@@ -43,7 +42,7 @@ Use bundler to install dependencies.
 The application also requires openssl, json and base64 ruby libraries
 
 
-## Usage
+## Launch
 
 ### UI
 
