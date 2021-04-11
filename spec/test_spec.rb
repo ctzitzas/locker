@@ -61,15 +61,14 @@ RSpec.describe Database do
 
   describe 'Editing entries' do
     before(:each) do
-      
-  
-      @data = Database.new(@test_data)
+
+      temp = Base64.decode64(File.read("./data/temp/crypt"))
+      @data = Database.new('temp', 'temp', temp)
     end
 
     it 'should edit name entry for password' do
       expect(@data.edit_entry('passwords', 0, 'name', 'google')).to eq 'google'
     end
-
     it 'should edit user entry for password' do
       expect(@data.edit_entry('passwords', 0, 'user', 'changed')).to eq 'changed'
     end
@@ -204,11 +203,6 @@ RSpec.describe Session do
           'user' => 'admin',
           'pword' => 'temporary',
           'IP_address' => '192.168.1.12',
-          'ports' => [
-            '21 - open',
-            '45 - open',
-            '65 - open'
-            ],
           'notes' => 'This server is currently down'
           },
           {
