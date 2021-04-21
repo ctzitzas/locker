@@ -87,4 +87,8 @@ Future features to be built into the application include:
 
 - The ability to save any file type to the locker in a new 'File' category. The file can then be saved to disk or opened using the command line. 
 
+## Project management
 
+This project was managed using Trello.
+
+Link to trello board: https://trello.com/b/EjDMDY4L/locker
